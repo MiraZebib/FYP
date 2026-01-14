@@ -1,10 +1,3 @@
-"""
-Evaluation module for malicious URL detection models.
-
-This module computes evaluation metrics, generates plots, and produces
-comparison tables for model performance.
-"""
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,44 +10,24 @@ import os
 
 
 def evaluate_model(model, X_test, y_test, scaler=None, model_name='Model'):
-    """
-    Evaluate a single model and return metrics.
-    
-    Args:
-        model: Trained sklearn model
-        X_test (np.ndarray): Test features
-        y_test (np.ndarray): Test labels
-        scaler (StandardScaler): Optional scaler for preprocessing
-        model_name (str): Name of the model
-        
-    Returns:
-        dict: Dictionary of metrics
-        np.ndarray: Predictions
-        np.ndarray: Prediction probabilities
-    """
-    # Preprocess if scaler provided
     if scaler is not None:
         X_test_scaled = scaler.transform(X_test)
         X_eval = X_test_scaled
     else:
         X_eval = X_test
     
-    # Predictions
     y_pred = model.predict(X_eval)
     
-    # Probabilities (if available)
     try:
         y_proba = model.predict_proba(X_eval)[:, 1]
     except:
         y_proba = None
     
-    # Calculate metrics
     accuracy = accuracy_score(y_test, y_pred)
     precision = precision_score(y_test, y_pred, zero_division=0)
     recall = recall_score(y_test, y_pred, zero_division=0)
     f1 = f1_score(y_test, y_pred, zero_division=0)
     
-    # ROC-AUC (if probabilities available)
     roc_auc = None
     if y_proba is not None:
         try:
@@ -62,7 +35,6 @@ def evaluate_model(model, X_test, y_test, scaler=None, model_name='Model'):
         except:
             pass
     
-    # Confusion matrix
     cm = confusion_matrix(y_test, y_pred)
     
     metrics = {
@@ -79,14 +51,6 @@ def evaluate_model(model, X_test, y_test, scaler=None, model_name='Model'):
 
 
 def plot_confusion_matrix(cm, model_name, save_path=None):
-    """
-    Plot confusion matrix.
-    
-    Args:
-        cm (np.ndarray): Confusion matrix
-        model_name (str): Name of the model
-        save_path (str): Path to save the plot
-    """
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
                 xticklabels=['Benign', 'Malicious'],
@@ -104,15 +68,6 @@ def plot_confusion_matrix(cm, model_name, save_path=None):
 
 
 def plot_roc_curve(y_test, y_proba_list, model_names, save_path=None):
-    """
-    Plot ROC curves for multiple models.
-    
-    Args:
-        y_test (np.ndarray): True labels
-        y_proba_list (list): List of probability arrays
-        model_names (list): List of model names
-        save_path (str): Path to save the plot
-    """
     plt.figure(figsize=(10, 8))
     
     for y_proba, name in zip(y_proba_list, model_names):
@@ -140,26 +95,12 @@ def plot_roc_curve(y_test, y_proba_list, model_names, save_path=None):
 
 def evaluate_all_models(models_dict, scalers_dict, X_test, y_test, 
                        plots_dir='plots'):
-    """
-    Evaluate all models and generate comparison.
-    
-    Args:
-        models_dict (dict): Dictionary of trained models
-        scalers_dict (dict): Dictionary of scalers
-        X_test (np.ndarray): Test features
-        y_test (np.ndarray): Test labels
-        plots_dir (str): Directory to save plots
-        
-    Returns:
-        pd.DataFrame: Comparison table of metrics
-    """
     os.makedirs(plots_dir, exist_ok=True)
     
     all_metrics = []
     y_proba_list = []
     model_names = []
     
-    # Evaluate Random Forest
     rf_metrics, _, rf_proba = evaluate_model(
         models_dict['random_forest'], X_test, y_test, 
         scaler=None, model_name='Random Forest'
@@ -168,7 +109,6 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
     y_proba_list.append(rf_proba)
     model_names.append('Random Forest')
     
-    # Plot confusion matrix
     plot_confusion_matrix(
         rf_metrics['confusion_matrix'], 
         'Random Forest',
@@ -176,7 +116,6 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
     )
     plt.close()
     
-    # Evaluate Logistic Regression
     lr_metrics, _, lr_proba = evaluate_model(
         models_dict['logistic_regression'], X_test, y_test,
         scaler=scalers_dict.get('lr_scaler'), model_name='Logistic Regression'
@@ -185,7 +124,6 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
     y_proba_list.append(lr_proba)
     model_names.append('Logistic Regression')
     
-    # Plot confusion matrix
     plot_confusion_matrix(
         lr_metrics['confusion_matrix'],
         'Logistic Regression',
@@ -193,7 +131,6 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
     )
     plt.close()
     
-    # Evaluate SVM
     svm_metrics, _, svm_proba = evaluate_model(
         models_dict['svm'], X_test, y_test,
         scaler=scalers_dict.get('svm_scaler'), model_name='SVM'
@@ -202,7 +139,6 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
     y_proba_list.append(svm_proba)
     model_names.append('SVM')
     
-    # Plot confusion matrix
     plot_confusion_matrix(
         svm_metrics['confusion_matrix'],
         'SVM',
@@ -210,14 +146,12 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
     )
     plt.close()
     
-    # Plot ROC curves comparison
     plot_roc_curve(
         y_test, y_proba_list, model_names,
         os.path.join(plots_dir, 'roc_curves.png')
     )
     plt.close()
     
-    # Create comparison table
     comparison_df = pd.DataFrame([
         {
             'Model': m['model_name'],
@@ -230,19 +164,16 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
         for m in all_metrics
     ])
     
-    # Save comparison table
     comparison_path = os.path.join(plots_dir, 'model_comparison.csv')
     comparison_df.to_csv(comparison_path, index=False)
     print(f"\nComparison table saved to {comparison_path}")
     
-    # Print comparison table
     print("\n" + "="*70)
     print("MODEL PERFORMANCE COMPARISON")
     print("="*70)
     print(comparison_df.to_string(index=False))
     print("="*70)
     
-    # Print detailed reports
     print("\nDetailed Classification Reports:")
     print("\n" + "-"*70)
     print("Random Forest:")

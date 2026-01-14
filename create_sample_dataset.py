@@ -1,22 +1,8 @@
-"""
-Sample dataset generator for testing purposes.
-
-This script creates a sample CSV dataset with benign and malicious URLs
-for testing and demonstration. The URLs are synthetic and safe to use.
-"""
-
 import pandas as pd
 import random
 
 
 def generate_sample_dataset(output_file='sample_dataset.csv', num_samples=1000):
-    """
-    Generate a sample dataset with benign and malicious URLs.
-    
-    Args:
-        output_file (str): Output CSV file path
-        num_samples (int): Number of samples to generate
-    """
     benign_urls = [
         "https://www.example.com",
         "https://www.google.com/search?q=python",
@@ -61,11 +47,9 @@ def generate_sample_dataset(output_file='sample_dataset.csv', num_samples=1000):
     
     data = []
     
-    # Generate benign URLs
     num_benign = num_samples // 2
     for _ in range(num_benign):
         base_url = random.choice(benign_urls)
-        # Add some variation
         if random.random() < 0.3:
             base_url += f"/path{random.randint(1, 100)}"
         if random.random() < 0.2:
@@ -75,14 +59,12 @@ def generate_sample_dataset(output_file='sample_dataset.csv', num_samples=1000):
             'label': 'benign'
         })
     
-    # Generate malicious URLs
     num_malicious = num_samples - num_benign
     for _ in range(num_malicious):
         pattern = random.choice(malicious_patterns)
         domain = random.choice(suspicious_domains)
         url = pattern.format(domain)
         
-        # Add some variation
         if random.random() < 0.4:
             url += f"?id={random.randint(1000, 9999)}"
         if random.random() < 0.3:
@@ -93,13 +75,9 @@ def generate_sample_dataset(output_file='sample_dataset.csv', num_samples=1000):
             'label': 'malicious'
         })
     
-    # Shuffle data
     random.shuffle(data)
     
-    # Create DataFrame
     df = pd.DataFrame(data)
-    
-    # Save to CSV
     df.to_csv(output_file, index=False)
     print(f"Sample dataset created: {output_file}")
     print(f"Total samples: {len(df)}")

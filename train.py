@@ -1,10 +1,3 @@
-"""
-Training module for malicious URL detection models.
-
-This module trains multiple machine learning classifiers (Random Forest,
-Logistic Regression, SVM) and saves them to disk.
-"""
-
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -19,18 +12,6 @@ from features import extract_features_batch
 
 
 def prepare_features_and_labels(df, url_column='url', label_column='label'):
-    """
-    Extract features from URLs and prepare feature matrix and labels.
-    
-    Args:
-        df (pd.DataFrame): DataFrame with URLs and labels
-        url_column (str): Name of the URL column
-        label_column (str): Name of the label column
-        
-    Returns:
-        np.ndarray: Feature matrix
-        np.ndarray: Label array
-    """
     print("Extracting features from URLs...")
     X = extract_features_batch(df[url_column])
     y = df[label_column].values
@@ -42,20 +23,8 @@ def prepare_features_and_labels(df, url_column='url', label_column='label'):
 
 
 def train_random_forest(X_train, y_train, n_jobs=-1):
-    """
-    Train a Random Forest classifier with hyperparameter tuning.
-    
-    Args:
-        X_train (np.ndarray): Training features
-        y_train (np.ndarray): Training labels
-        n_jobs (int): Number of parallel jobs
-        
-    Returns:
-        RandomForestClassifier: Trained model
-    """
     print("\nTraining Random Forest...")
     
-    # Hyperparameter grid
     param_grid = {
         'n_estimators': [50, 100, 200],
         'max_depth': [10, 20, None],
@@ -76,28 +45,14 @@ def train_random_forest(X_train, y_train, n_jobs=-1):
 
 
 def train_logistic_regression(X_train, y_train, scaler=None):
-    """
-    Train a Logistic Regression classifier with hyperparameter tuning.
-    
-    Args:
-        X_train (np.ndarray): Training features
-        y_train (np.ndarray): Training labels
-        scaler (StandardScaler): Optional pre-fitted scaler
-        
-    Returns:
-        LogisticRegression: Trained model
-        StandardScaler: Fitted scaler
-    """
     print("\nTraining Logistic Regression...")
     
-    # Scale features for logistic regression
     if scaler is None:
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
     else:
         X_train_scaled = scaler.transform(X_train)
     
-    # Hyperparameter grid
     param_grid = {
         'C': [0.1, 1.0, 10.0],
         'penalty': ['l1', 'l2'],
@@ -117,28 +72,14 @@ def train_logistic_regression(X_train, y_train, scaler=None):
 
 
 def train_svm(X_train, y_train, scaler=None):
-    """
-    Train a Support Vector Machine classifier with linear kernel.
-    
-    Args:
-        X_train (np.ndarray): Training features
-        y_train (np.ndarray): Training labels
-        scaler (StandardScaler): Optional pre-fitted scaler
-        
-    Returns:
-        SVC: Trained model
-        StandardScaler: Fitted scaler
-    """
     print("\nTraining Support Vector Machine (Linear)...")
     
-    # Scale features for SVM
     if scaler is None:
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
     else:
         X_train_scaled = scaler.transform(X_train)
     
-    # Hyperparameter grid
     param_grid = {
         'C': [0.1, 1.0, 10.0],
         'gamma': ['scale', 'auto']
@@ -158,27 +99,10 @@ def train_svm(X_train, y_train, scaler=None):
 
 def train_models(df, url_column='url', label_column='label', 
                  test_size=0.2, random_state=42, models_dir='models'):
-    """
-    Train all models and save them to disk.
-    
-    Args:
-        df (pd.DataFrame): Preprocessed DataFrame
-        url_column (str): Name of the URL column
-        label_column (str): Name of the label column
-        test_size (float): Proportion of data for testing
-        random_state (int): Random seed
-        models_dir (str): Directory to save models
-        
-    Returns:
-        dict: Dictionary containing trained models, scalers, and split data
-    """
-    # Create models directory
     os.makedirs(models_dir, exist_ok=True)
     
-    # Prepare features and labels
     X, y = prepare_features_and_labels(df, url_column, label_column)
     
-    # Split data
     print(f"\nSplitting data (test_size={test_size})...")
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=y
@@ -187,16 +111,10 @@ def train_models(df, url_column='url', label_column='label',
     print(f"Training set size: {X_train.shape[0]}")
     print(f"Test set size: {X_test.shape[0]}")
     
-    # Train Random Forest
     rf_model = train_random_forest(X_train, y_train)
-    
-    # Train Logistic Regression (with scaler)
     lr_model, lr_scaler = train_logistic_regression(X_train, y_train)
-    
-    # Train SVM (with scaler, reuse LR scaler for consistency)
     svm_model, svm_scaler = train_svm(X_train, y_train)
     
-    # Save models
     print("\nSaving models...")
     joblib.dump(rf_model, os.path.join(models_dir, 'random_forest.pkl'))
     joblib.dump(lr_model, os.path.join(models_dir, 'logistic_regression.pkl'))
@@ -204,7 +122,6 @@ def train_models(df, url_column='url', label_column='label',
     joblib.dump(lr_scaler, os.path.join(models_dir, 'lr_scaler.pkl'))
     joblib.dump(svm_scaler, os.path.join(models_dir, 'svm_scaler.pkl'))
     
-    # Save feature names for later use
     feature_names = extract_features_batch(['dummy']).columns.tolist()
     joblib.dump(feature_names, os.path.join(models_dir, 'feature_names.pkl'))
     

@@ -1,10 +1,3 @@
-"""
-Main script to train and evaluate malicious URL detection models.
-
-This script provides a convenient entry point for training models and
-generating evaluation reports.
-"""
-
 import argparse
 import os
 from data_loader import preprocess_dataset
@@ -13,7 +6,6 @@ from evaluate import evaluate_all_models
 
 
 def main():
-    """Main function to train and evaluate models."""
     parser = argparse.ArgumentParser(
         description='Train and evaluate malicious URL detection models'
     )
@@ -55,7 +47,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Check if dataset exists
     if not os.path.exists(args.dataset):
         print(f"Error: Dataset file '{args.dataset}' not found.")
         return
@@ -64,7 +55,6 @@ def main():
     print("MALICIOUS URL DETECTION - TRAINING AND EVALUATION")
     print("="*70)
     
-    # Step 1: Load and preprocess dataset
     print("\n[Step 1/3] Loading and preprocessing dataset...")
     df, label_mapping = preprocess_dataset(
         args.dataset,
@@ -73,7 +63,6 @@ def main():
     )
     print(f"Label mapping: {label_mapping}")
     
-    # Step 2: Train models
     print("\n[Step 2/3] Training models...")
     results = train_models(
         df,
@@ -83,7 +72,6 @@ def main():
         models_dir=args.models_dir
     )
     
-    # Step 3: Evaluate models
     print("\n[Step 3/3] Evaluating models...")
     comparison_df = evaluate_all_models(
         results['models'],
