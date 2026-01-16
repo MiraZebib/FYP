@@ -28,6 +28,7 @@ models/
 *.pkl
 *.joblib
 *.csv
+sample_dataset*.csv
 *.json
 
 # Plots and outputs

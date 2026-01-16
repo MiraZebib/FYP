@@ -18,6 +18,7 @@ A Python-based machine learning system that detects malicious URLs using lexical
 ├── features.py         # Lexical feature extraction
 ├── train.py           # Model training and saving
 ├── evaluate.py        # Model evaluation and visualization
+├── test_dataset.py    # Test models on new datasets
 ├── app.py             # Streamlit web interface
 ├── requirements.txt   # Python dependencies
 └── README.md         # This file
@@ -34,9 +35,9 @@ A Python-based machine learning system that detects malicious URLs using lexical
 
 ## Dataset Format
 
-The system expects a CSV file with at least two columns:
-- **URL column**: Contains the URL strings
-- **Label column**: Contains labels (benign/malicious or 0/1)
+The system expects a CSV file with at least one column:
+- **URL column**: Contains the URL strings (required)
+- **Label column**: Contains labels (benign/malicious or 0/1) - optional for testing
 
 Example CSV format:
 ```csv
@@ -45,15 +46,58 @@ https://example.com,benign
 http://suspicious-site.com/login,malicious
 ```
 
-### Generate Sample Dataset
+### Using Kaggle Datasets
 
-For testing purposes, you can generate a sample dataset:
+#### Option 1: Download Directly from Kaggle (Recommended)
+
+Download and prepare a dataset directly from Kaggle using the Kaggle Hub API:
 
 ```bash
-python create_sample_dataset.py sample_dataset.csv 1000
+# Download and prepare in one step
+python download_kaggle_dataset.py "himadri07/malicious-urls-dataset-15k-rows"
 ```
 
-This creates a CSV file with 1000 samples (500 benign, 500 malicious) for testing.
+The script will:
+- Download the dataset from Kaggle
+- Show you the CSV files found
+- Let you select which file to use
+- Inspect the dataset structure
+- Help you select URL and label columns
+- Create a prepared dataset ready for training
+
+**With specific column names:**
+```bash
+python download_kaggle_dataset.py "himadri07/malicious-urls-dataset-15k-rows" --url-column url --label-column label --output my_dataset.csv
+```
+
+**Note:** You'll need to authenticate with Kaggle first. Set up your Kaggle API credentials:
+1. Go to https://www.kaggle.com/settings
+2. Click "Create New Token" to download `kaggle.json`
+3. Place it in `~/.kaggle/kaggle.json` (or `C:\Users\<username>\.kaggle\kaggle.json` on Windows)
+
+#### Option 2: Manual Download
+
+If you manually downloaded a dataset from Kaggle:
+
+1. **Inspect the dataset** to see its structure:
+   ```bash
+   python prepare_kaggle_dataset.py your_kaggle_dataset.csv --inspect
+   ```
+
+2. **Prepare the dataset** (extract URL and label columns):
+   ```bash
+   python prepare_kaggle_dataset.py your_kaggle_dataset.csv --url-column url --label-column label --output prepared_dataset.csv
+   ```
+
+   Or run interactively (it will prompt you for column names):
+   ```bash
+   python prepare_kaggle_dataset.py your_kaggle_dataset.csv --output prepared_dataset.csv
+   ```
+
+3. **Train models** with the prepared dataset:
+   ```bash
+   python main.py prepared_dataset.csv --url-column url --label-column label
+   ```
 
 ## Usage
 
@@ -121,6 +165,32 @@ The web interface will open in your browser, allowing you to:
 - View predictions with confidence scores
 - See feature importance explanations
 - Compare different models
+
+### 5. Test Models on New Datasets
+
+Test your trained models on new datasets:
+
+```bash
+# Test with all models (requires labels for evaluation)
+python test_dataset.py your_dataset.csv --label-column label
+
+# Test with a specific model
+python test_dataset.py your_dataset.csv --model random_forest --label-column label
+
+# Test without labels (prediction only)
+python test_dataset.py your_dataset.csv
+
+# Save predictions to CSV
+python test_dataset.py your_dataset.csv --output predictions.csv --label-column label
+```
+
+The script will:
+- Load trained models
+- Extract features from URLs in your dataset
+- Generate predictions for all URLs
+- Calculate performance metrics (if labels provided)
+- Display confusion matrix and classification report
+- Optionally save results to CSV
 
 ## Extracted Features
 
@@ -200,11 +270,11 @@ For large datasets, consider:
 ### Quick Start (Command Line)
 
 ```bash
-# 1. Generate sample dataset (optional)
-python create_sample_dataset.py sample_dataset.csv 1000
+# 1. Train and evaluate models
+python main.py your_dataset.csv
 
-# 2. Train and evaluate models
-python main.py sample_dataset.csv
+# 2. Test models on a new dataset
+python test_dataset.py your_test_dataset.csv --label-column label
 
 # 3. Run web interface
 streamlit run app.py

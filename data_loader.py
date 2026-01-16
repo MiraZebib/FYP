@@ -51,10 +51,12 @@ def encode_labels(df, label_column='label'):
     unique_labels = df[label_column].unique()
     label_mapping = {}
     
+    malicious_keywords = ['malicious', 'malware', 'phishing', 'defacement', 'spam', 'trojan', 'virus']
+    
     for label in unique_labels:
         if 'benign' in label or label == '0' or label == '0.0':
             label_mapping[label] = 0
-        elif 'malicious' in label or 'malware' in label or label == '1' or label == '1.0':
+        elif any(keyword in label for keyword in malicious_keywords) or label == '1' or label == '1.0':
             label_mapping[label] = 1
         else:
             try:
