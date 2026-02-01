@@ -67,6 +67,28 @@ def plot_confusion_matrix(cm, model_name, save_path=None):
     return plt.gcf()
 
 
+def analyze_false_negatives(y_test, y_pred, model_name, X_test_urls=None):
+    fn_indices = np.where((y_test == 1) & (y_pred == 0))[0]
+    fn_count = len(fn_indices)
+    total_malicious = np.sum(y_test == 1)
+    fn_rate = fn_count / total_malicious if total_malicious > 0 else 0
+    
+    print(f"\n{'='*70}")
+    print(f"False Negative Analysis - {model_name}")
+    print(f"{'='*70}")
+    print(f"Total Malicious URLs in Test Set: {total_malicious}")
+    print(f"False Negatives (FN): {fn_count}")
+    print(f"False Negative Rate: {fn_rate:.2%}")
+    print(f"WARNING: {fn_count} malicious URLs were incorrectly classified as benign")
+    
+    if fn_count > 0 and X_test_urls is not None:
+        print(f"\nSample False Negative URLs (first 5):")
+        for i, idx in enumerate(fn_indices[:5]):
+            print(f"  {i+1}. {X_test_urls[idx]}")
+    
+    return fn_indices, fn_count, fn_rate
+
+
 def plot_roc_curve(y_test, y_proba_list, model_names, save_path=None):
     plt.figure(figsize=(10, 8))
     
@@ -101,7 +123,7 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
     y_proba_list = []
     model_names = []
     
-    rf_metrics, _, rf_proba = evaluate_model(
+    rf_metrics, rf_pred, rf_proba = evaluate_model(
         models_dict['random_forest'], X_test, y_test, 
         scaler=None, model_name='Random Forest'
     )
@@ -116,7 +138,9 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
     )
     plt.close()
     
-    lr_metrics, _, lr_proba = evaluate_model(
+    analyze_false_negatives(y_test, rf_pred, 'Random Forest')
+    
+    lr_metrics, lr_pred, lr_proba = evaluate_model(
         models_dict['logistic_regression'], X_test, y_test,
         scaler=scalers_dict.get('lr_scaler'), model_name='Logistic Regression'
     )
@@ -131,20 +155,24 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
     )
     plt.close()
     
-    svm_metrics, _, svm_proba = evaluate_model(
-        models_dict['svm'], X_test, y_test,
-        scaler=scalers_dict.get('svm_scaler'), model_name='SVM'
+    analyze_false_negatives(y_test, lr_pred, 'Logistic Regression')
+    
+    gb_metrics, gb_pred, gb_proba = evaluate_model(
+        models_dict['gradient_boosting'], X_test, y_test,
+        scaler=None, model_name='Gradient Boosting'
     )
-    all_metrics.append(svm_metrics)
-    y_proba_list.append(svm_proba)
-    model_names.append('SVM')
+    all_metrics.append(gb_metrics)
+    y_proba_list.append(gb_proba)
+    model_names.append('Gradient Boosting')
     
     plot_confusion_matrix(
-        svm_metrics['confusion_matrix'],
-        'SVM',
-        os.path.join(plots_dir, 'confusion_matrix_svm.png')
+        gb_metrics['confusion_matrix'],
+        'Gradient Boosting',
+        os.path.join(plots_dir, 'confusion_matrix_gb.png')
     )
     plt.close()
+    
+    analyze_false_negatives(y_test, gb_pred, 'Gradient Boosting')
     
     plot_roc_curve(
         y_test, y_proba_list, model_names,
@@ -195,13 +223,13 @@ def evaluate_all_models(models_dict, scalers_dict, X_test, y_test,
                               target_names=['Benign', 'Malicious']))
     
     print("\n" + "-"*70)
-    print("SVM:")
+    print("Gradient Boosting:")
     print("-"*70)
-    _, svm_pred, _ = evaluate_model(
-        models_dict['svm'], X_test, y_test,
-        scaler=scalers_dict.get('svm_scaler'), model_name='SVM'
+    _, gb_pred, _ = evaluate_model(
+        models_dict['gradient_boosting'], X_test, y_test,
+        scaler=None, model_name='GB'
     )
-    print(classification_report(y_test, svm_pred,
+    print(classification_report(y_test, gb_pred,
                               target_names=['Benign', 'Malicious']))
     
     return comparison_df

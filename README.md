@@ -5,7 +5,7 @@ A Python-based machine learning system that detects malicious URLs using lexical
 ## Features
 
 - **Lexical Feature Extraction**: Analyzes URL structure, character patterns, entropy, and more
-- **Multiple ML Models**: Random Forest, Logistic Regression, and Support Vector Machine
+- **Multiple ML Models**: Random Forest, Logistic Regression, and Gradient Boosting
 - **Comprehensive Evaluation**: Accuracy, precision, recall, F1-score, ROC-AUC, and confusion matrices
 - **Web Interface**: User-friendly Streamlit application for real-time URL classification
 - **Offline Analysis**: All processing is performed locally without network requests
@@ -131,7 +131,7 @@ python -c "from data_loader import preprocess_dataset; from train import train_m
 
 This will:
 - Extract features from URLs
-- Train Random Forest, Logistic Regression, and SVM models
+- Train Random Forest, Logistic Regression, and Gradient Boosting models
 - Save models to the `models/` directory
 
 ### 3. Evaluate Models
@@ -219,10 +219,10 @@ The system extracts the following lexical and structural features:
 - Features are standardized before training
 - Hyperparameter tuning: C, penalty, solver
 
-### Support Vector Machine
-- Linear kernel SVM
-- Features are standardized before training
-- Hyperparameter tuning: C, gamma
+### Gradient Boosting
+- Sequential ensemble method with boosting
+- High performance with feature importance
+- Hyperparameter tuning: n_estimators, learning_rate, max_depth, subsample
 
 ## Evaluation Metrics
 

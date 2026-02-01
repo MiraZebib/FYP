@@ -57,12 +57,11 @@ def load_models():
         models = {
             'random_forest': joblib.load(os.path.join(models_dir, 'random_forest.pkl')),
             'logistic_regression': joblib.load(os.path.join(models_dir, 'logistic_regression.pkl')),
-            'svm': joblib.load(os.path.join(models_dir, 'svm.pkl'))
+            'gradient_boosting': joblib.load(os.path.join(models_dir, 'gradient_boosting.pkl'))
         }
         
         scalers = {
-            'lr_scaler': joblib.load(os.path.join(models_dir, 'lr_scaler.pkl')),
-            'svm_scaler': joblib.load(os.path.join(models_dir, 'svm_scaler.pkl'))
+            'lr_scaler': joblib.load(os.path.join(models_dir, 'lr_scaler.pkl'))
         }
         
         feature_names = joblib.load(os.path.join(models_dir, 'feature_names.pkl'))
@@ -139,14 +138,14 @@ def main():
     st.sidebar.header("Model Selection")
     selected_model_name = st.sidebar.selectbox(
         "Choose a model:",
-        ["Random Forest", "Logistic Regression", "SVM"],
+        ["Random Forest", "Logistic Regression", "Gradient Boosting"],
         index=0
     )
     
     model_map = {
         "Random Forest": ("random_forest", None),
         "Logistic Regression": ("logistic_regression", "lr_scaler"),
-        "SVM": ("svm", "svm_scaler")
+        "Gradient Boosting": ("gradient_boosting", None)
     }
     
     model_key, scaler_key = model_map[selected_model_name]
@@ -242,8 +241,8 @@ def main():
         ### 🤖 Machine Learning
         Three models are available:
         - **Random Forest**: Ensemble method with feature importance
-        - **Logistic Regression**: Linear classifier
-        - **SVM**: Support Vector Machine with linear kernel
+        - **Logistic Regression**: Linear classifier with interpretability
+        - **Gradient Boosting**: Sequential ensemble with high performance
         """)
     
     with col3:

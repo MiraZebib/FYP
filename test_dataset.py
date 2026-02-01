@@ -18,12 +18,11 @@ def load_models(models_dir='models'):
     models = {
         'random_forest': joblib.load(os.path.join(models_dir, 'random_forest.pkl')),
         'logistic_regression': joblib.load(os.path.join(models_dir, 'logistic_regression.pkl')),
-        'svm': joblib.load(os.path.join(models_dir, 'svm.pkl'))
+        'gradient_boosting': joblib.load(os.path.join(models_dir, 'gradient_boosting.pkl'))
     }
     
     scalers = {
-        'lr_scaler': joblib.load(os.path.join(models_dir, 'lr_scaler.pkl')),
-        'svm_scaler': joblib.load(os.path.join(models_dir, 'svm_scaler.pkl'))
+        'lr_scaler': joblib.load(os.path.join(models_dir, 'lr_scaler.pkl'))
     }
     
     return models, scalers
@@ -81,7 +80,7 @@ def test_dataset(dataset_path, url_column='url', label_column=None,
     model_configs = {
         'random_forest': (models['random_forest'], None, 'Random Forest'),
         'logistic_regression': (models['logistic_regression'], scalers['lr_scaler'], 'Logistic Regression'),
-        'svm': (models['svm'], scalers['svm_scaler'], 'SVM')
+        'gradient_boosting': (models['gradient_boosting'], None, 'Gradient Boosting')
     }
     
     if model_name == 'all':
@@ -203,7 +202,7 @@ def main():
         '--model',
         type=str,
         default='all',
-        choices=['all', 'random_forest', 'logistic_regression', 'svm'],
+        choices=['all', 'random_forest', 'logistic_regression', 'gradient_boosting'],
         help='Which model to use (default: all)'
     )
     
